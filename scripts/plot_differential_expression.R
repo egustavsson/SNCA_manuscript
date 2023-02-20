@@ -4,6 +4,7 @@ library(tidyverse)
 library(here)
 library(ggforce)
 library(patchwork)
+library(ggpubr)
 
 # Load data ---------------------------------------------------------------
 
@@ -49,7 +50,7 @@ iPSC_transcript_category_differential_expression <-
              y = count, 
              fill = Genotype)) + 
   geom_boxplot(colour = "black") +
-  scale_fill_brewer(palette = "Dark2") +
+  scale_fill_manual(values = c(Control = "#888888", Mutant = "#00BFC4")) +
   stat_compare_means(aes(label = paste0("p = ", ..p.format..))) +
   labs(x = "Transcript category", y = "Relative Expression (%)") +
   theme_bw() +
@@ -72,7 +73,7 @@ iPSC_transcript_differential_expression <-
              y = count, 
              fill = Genotype)) + 
   geom_boxplot(colour = "black", show.legend = F) +
-  scale_fill_brewer(palette = "Dark2") +
+  scale_fill_manual(values = c(Control = "#888888", Mutant = "#00BFC4")) +
   stat_compare_means(paired = F, 
                      aes(label = paste0("p = ", ..p.format..))) +
   labs(x = "Transcript", y = "Relative Expression (%)") +

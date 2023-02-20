@@ -19,7 +19,7 @@ lr <-
   rtracklayer::import(
     here::here("docs", "iPSC", "SNCA_iPSC_corrected.gtf.cds.gff")
     ) %>%
-  # Only include filtered transcripts
+  # Only include filtered (0.3%) transcripts
   plyranges::filter(transcript_id %in% TOI$isoform)
 
 # also download and load reference annotation 
@@ -143,6 +143,8 @@ plot_diff <- function(lr_exons_cds,
       alpha = 0.2, 
       linetype = 2
     ) + 
+    ggforce::facet_zoom(xlim = c(89835000, 89839000)) +
+
     scale_y_discrete(name = "Transcript ID") + 
     scale_x_continuous(name = "Genomic position") + 
     scale_fill_discrete(
@@ -172,7 +174,11 @@ plot_diff <- function(lr_exons_cds,
 
 SNCA_lr_exons_cds <- get_lr_tx_of_interest(
   lr = lr, 
-  pb_ids = TOI$isoform)
+  pb_ids = c("PB.3.49", "PB.3.56")) %>% 
+  
+  lapply(., function(x){
+    x %>% 
+      dplyr::mutate(transcript_id = ifelse(transcript_id == "PB.3.56", "ENST00000336904.7", transcript_id)) })
 
 SNCA_mane_exons_cds <- get_mane(ref, mane_id = "ENST00000394991")
 
