@@ -25,13 +25,14 @@ We have previosly developed two `snakemake` pipelines for automated Analysis of 
 <br>
 [PSQAN (Post Sqanti QC Analysis](https://github.com/sid-sethi/PSQAN): This pipeline applies a set of QC and filtering criteria to remove potential genomic contamination and rare PCR artifacts. Using [`SQANTI3`](https://github.com/ConesaLab/SQANTI3) output of ORF prediction, NMD prediction and structural categorisation based on comparison with the reference annotation, we grouped the identified isoforms into the following categories:
 <br>
-1. Non-coding novel – if predicted to be non-coding and not a full-splice match with the reference
-2. Non-coding known – if predicted to be non-coding and a full-splice match with the reference
-3. NMD novel – if predicted to be coding & NMD, and not a full-splice match with the reference
-4. NMD known – if predicted to be coding & NMD, and a full-splice match with the reference
-5. Coding novel – if predicted to be coding & not NMD, and not a full-splice match with the reference
-6. Coding known (complete match) – if predicted to be coding & not NMD, and a full-splice & UTR match with the reference
-7. Coding known (alternate 3’/5’ end) – if predicted to be coding & not NMD, and a full-splice match with the reference but with an alternate 3’ end, 5’ end or both 3’ and 5’ end.
+1.  __Non-coding novel__ – if predicted to be non-coding and not a full-splice match with the reference
+2.  __Non-coding known__ – if predicted to be non-coding and a full-splice match with the reference
+3.  __NMD novel__ – if predicted to be coding & NMD, and not a full-splice match with the reference
+4.  __NMD known__ – if predicted to be coding & NMD, and a full-splice match with the reference
+5.  __Coding novel__ – if predicted to be coding & not NMD, and not a full-splice match with the reference
+6.  __Coding known (complete match)__ – if predicted to be coding & not NMD, and a full-splice & UTR match with the reference
+7.  __Coding known (alternate 3’/5’ end)__ – if predicted to be coding & not NMD, and a full-splice match with the reference but with an alternate 3’ end, 5’ end or both 3’ and 5’ end.
+
 
 
 ## Code contents
