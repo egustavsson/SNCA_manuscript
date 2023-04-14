@@ -88,13 +88,13 @@ plot_transcripts_per_gene <-
       scale_x_discrete(labels = c("Coding known (alternate 3/5 end)" = "Coding known\n(alternate 3/5 end)",
                                   "Coding known (complete match)" = "Coding known\n(complete match)")) +
       labs(y = "No. unique transcripts", x = "Transcript category") +
-      theme_classic() +
+      theme_bw() +
       theme(panel.border = element_rect(colour = "black", fill=NA, size=1),
-            axis.title = element_text(size = 14),
-            axis.text.y = element_text(size = 12),
+            axis.title = element_text(size = 16), 
             axis.text.x = element_text(angle = 45, 
                                        hjust=1,
-                                       size = 12))
+                                       size = 12),
+            axis.text.y = element_text(face = "bold", size = 12))
     
     
     ## Plot expression per transcript ##
@@ -116,10 +116,11 @@ plot_transcripts_per_gene <-
       scale_y_continuous(name = "Transcript expression\nacross samples (%)") +
       scale_x_continuous(name = "Transcripts ranked by expression") +
       guides(fill=guide_legend(title="Transcript category")) +
-      theme_classic() +
+      theme_bw() +
       theme(panel.border = element_rect(colour = "black", fill=NA, size=1),
-            axis.title = element_text(size = 14),
-            axis.text = element_text(size = 12),
+            axis.title = element_text(size = 16), 
+            axis.text.y = element_text(face = "bold", size = 12),
+            axis.text.x = element_text(size = 12),
             axis.line = element_line(color = "black", size=0.4))
     
     ## Plot expression per category ##
@@ -140,42 +141,66 @@ plot_transcripts_per_gene <-
                        by = c("Sample" = "Sample")) %>% 
       aggregate(count ~ Isoform_class + associated_gene + Mutation + Sample,
                 data = .,
-                FUN = "sum")
+                FUN = "sum") %>% 
+      group_by(Mutation, Isoform_class) %>%
+      summarise(mean_count = mean(count), sd_count = sd(count))
+    
+    categories_to_check <- c("Coding known (complete match)",
+                             "Coding known (alternate 3/5 end)",
+                             "Coding novel",
+                             "NMD novel",
+                             "Non-coding known",
+                             "Non-coding novel")
+    
+    # Loop through each factor and check if it is missing in Expression_per_category
+    for (variable in categories_to_check) {
+      if (!variable %in% Expression_per_category$Isoform_class) {
+        # Create a new row with the missing variable, mean_count = 0, sd_count = 0 for all samples
+        new_row <- data.frame(Mutation = rep(samples, each = 1),
+                              Isoform_class = variable,
+                              mean_count = 0,
+                              sd_count = 0)
+        # Add the new row to Expression_per_category
+        Expression_per_category <- rbind(Expression_per_category, new_row)
+      }
+    }
     
     Expression_per_category_plot <-
       Expression_per_category %>%
-      group_by(Mutation, Isoform_class) %>%
-      summarise(mean_count = mean(count), sd_count = sd(count)) %>% 
-      ggplot(
-        aes(x = factor(Mutation, 
-                       levels = c("Ctrl", 
-                                  "A53T", 
-                                  "SNCAx3")), 
+      ggplot(aes(factor(Isoform_class, 
+                        levels = c("Coding known (complete match)",
+                                   "Coding known (alternate 3/5 end)",
+                                   "Coding novel",
+                                   "NMD novel",
+                                   "Non-coding known",
+                                   "Non-coding novel")), 
             y = mean_count, 
             fill = Isoform_class)) +
       geom_col(position = "dodge", color = "black") +
       geom_errorbar(aes(ymin = mean_count - sd_count, ymax = mean_count + sd_count),
                     position = position_dodge(0.9), width = 0.2) +
-      labs(x = "", 
+      labs(x = "Transcript category", 
            y = "Expression per transcript category") +
       scale_fill_manual(values = fill_colour) +
       scale_y_continuous(labels = function(x) paste0(x, '%')) +
+      scale_x_discrete(labels = c("Coding known (alternate 3/5 end)" = "Coding known\n(alternate 3/5 end)",
+                                  "Coding known (complete match)" = "Coding known\n(complete match)")) +
       theme_bw() +
-      theme(legend.position = "top",
+      theme(panel.border = element_rect(colour = "black", fill=NA, size=1),
+            legend.position = "top",
             legend.title = element_blank(),
             axis.title = element_text(size = 16), 
-            strip.text = element_text(face = "bold", size = 12),
-            axis.text.x = element_text(face = "bold", size = 12, angle = 45, hjust = 1),
-            axis.text.y = element_text(face = "bold", size = 12),
-            axis.title.y = element_text(size = 14),
-            plot.title = element_text(face = "bold", size = 20, hjust = 0.5))
+            axis.text.x = element_text(angle = 45, 
+                                       hjust=1,
+                                       size = 12),
+            axis.text.y = element_text(face = "bold", size = 12))
     
     plot <- ggpubr::ggarrange(Transcripts_per_category_plot, Expression_per_transcript_plot, Expression_per_category_plot, 
                               nrow = 1, 
                               common.legend = T, align = "h",
                               labels = labelling, 
                               font.label = list(size = 24),
-                              widths = c(1, 1.5, 1))
+                              widths = c(1, 1.7, 1))
     
     return(annotate_figure(plot, top = text_grob(paste0(gene_name, " transcripts"), 
                                                  color = "black", face = "bold", size = 20))) # return plots as ggarrange
@@ -190,12 +215,11 @@ transcript_plot <-
                             samples = Samples, 
                             labelling = c("a", "b", "c"))
 
-
 # Save data ---------------------------------------------------------------
 ggsave(plot = transcript_plot, 
        filename = paste0(Gene, "_transcript_plot.png"), 
        path = here::here("results", Gene), 
-       width = 18, 
+       width = 16, 
        height = 8, 
        dpi = 600, 
        bg = "white"
