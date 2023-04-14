@@ -18,6 +18,7 @@ knitr::opts_chunk$set(
 ## Background
 This repository contains all the scripts used to in the SNCA manuscript post transcript calling. 
 
+### Processing of long-read data
 We have previosly developed two `snakemake` pipelines for automated Analysis of Iso-Seq data which we have used here:
 <br>
 [APTARS (Analysis of PacBio TARgeted Sequencing](https://github.com/sid-sethi/APTARS): This pipeline processes all the raw sequencing data, does the alignment to a reference genome and collapses reads into unique transcripts. It also annotates transcripts with information such as open reading frame (ORF) predictions and characterises transcript by comparing if they are full splice matches to transcripts in annotation. 
