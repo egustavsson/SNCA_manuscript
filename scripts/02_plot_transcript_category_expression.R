@@ -3,10 +3,9 @@
 library(tidyverse)
 library(here)
 library(ggpubr)
+library(readxl)
 
 # Argyuments---------------------------------------------------------------
-
-Gene <- "SNCA"
 
 Gene <- "SNCA"
 
@@ -23,15 +22,24 @@ Transcripts <-
 
 Samples <-
   read_excel(args$path_to_samples) %>% 
-  data.frame() %>% 
-  dplyr::filter(Mutation == "Ctrl",
-                Treatment == "UT")
+  data.frame() 
 
 # Functions ---------------------------------------------------------------
 
 plot_transcripts_per_gene <-
-  function(data, gene, gene_name, samples, labelling) {
+  function(data, gene, gene_name, samples, genotype, treatment, labelling) {
     
+    # Filter samples to include
+    samples_to_exclude <- samples[samples$Treatment != treatment | samples$Mutation != genotype, ]$Sample
+    
+    data <- 
+      data %>% 
+      rename_with(~paste0("", gsub("NFLR.Clontech_5p..|_3p", "", .)),
+                  starts_with('NFLR.Clontech_5p..')) %>% 
+      dplyr::select(!samples_to_exclude)
+    
+    samples <- samples %>% dplyr::filter(!Sample %in% samples_to_exclude)
+       
     # fill colour to use
     fill_colour <- c("Coding known (complete match)" = "#045a8d",
                      "Coding known (alternate 3/5 end)" = "#74add1",
@@ -100,8 +108,8 @@ plot_transcripts_per_gene <-
     ## Plot expression per transcript ##
     Expression_per_transcript <-
       data %>%
-      dplyr::select(isoform, Isoform_class, starts_with("NFLR.")) %>%
-      pivot_longer(cols = starts_with("NFLR."), names_to = "Sample", values_to = "NFLR") %>%
+      dplyr::select(isoform, Isoform_class, samples$Sample) %>%
+      pivot_longer(!c(isoform, Isoform_class), names_to = "Sample", values_to = "NFLR") %>%
       group_by(isoform, Isoform_class) %>%
       summarise(NFLR_mean = mean(NFLR), NFLR_sd = sd(NFLR), .groups = "keep") %>%
       arrange(desc(NFLR_mean)) %>%
@@ -128,9 +136,7 @@ plot_transcripts_per_gene <-
       data %>%
       dplyr::select(Isoform_class, 
                     associated_gene, 
-                    starts_with("NFLR.")) %>%
-      rename_with(~paste0("", gsub("NFLR.Clontech_5p..|_3p", "", .)),
-                  starts_with('NFLR.Clontech_5p..')) %>%
+                    samples$Sample) %>%
       pivot_longer(!c(Isoform_class, associated_gene), 
                    names_to = "Sample", 
                    values_to = "count") %>% 
@@ -207,12 +213,13 @@ plot_transcripts_per_gene <-
   }
 
 # Main --------------------------------------------------------------------
-
 transcript_plot <-
   plot_transcripts_per_gene(data = Transcripts, 
                             gene = "ENSG00000288563.1", 
                             gene_name = Gene, 
                             samples = Samples, 
+                            genotype = "Ctrl", 
+                            treatment = "UT",
                             labelling = c("a", "b", "c"))
 
 # Save data ---------------------------------------------------------------
