@@ -3,25 +3,39 @@
 library(tidyverse)
 library(here)
 library(ggforce)
+library(readxl)
 
-# Argyuments---------------------------------------------------------------
+# Arguments---------------------------------------------------------------
 
 Gene <- "SNCA"
 
+args <-
+  list(
+    path_to_transcripts = here::here("raw_data", "PB_iPSC_04062021", paste0(Gene, "_classification_processed.txt")),
+    path_to_samples = here::here("raw_data", "PB_iPSC_04062021", "James_samples.xlsx")
+  )
+
 # Load data ---------------------------------------------------------------
 
-sqanti_class <- read.table(here::here("raw_data", "PB_iPSC_04062021", paste0(Gene, "_classification_processed.txt")), header = TRUE, sep="\t")
+sqanti_class <-
+  read.table(args$path_to_transcripts, header = TRUE, sep="\t")
+
+sample_info <-
+  read_excel(args$path_to_samples) %>% 
+  data.frame() 
 
 # Functions ---------------------------------------------------------------
 
 transcripts_depreciation_curve <-
   
-  function(sqanti_output, gene_name) {
+  function(sqanti_output, gene_name, samples) {
     
-    # Generate data frame with number of transcripts by each given threshold
-    n_samples <- sqanti_output %>%
-      dplyr::select(starts_with("FL.")) %>% 
-      ncol()
+    # Reduce the data frame to only include samples of interest
+    # and calculate NFLR_mean with only the samples included
+    sqanti_output <- 
+      sqanti_output %>% 
+      select(isoform, matches(paste0("^NFLR.*(", paste(samples, collapse = "|"), ")"))) %>% 
+      dplyr::mutate(NFLR_mean = rowMeans(across(starts_with("NFLR"))))
     
     counts.long <- sqanti_output %>%
       dplyr::select(isoform, 
@@ -103,13 +117,28 @@ transcripts_depreciation_curve <-
 
 # Main --------------------------------------------------------------------
 
+# Samples to run plot
+samples_to_plot <- 
+  sample_info %>% 
+  dplyr::filter(Mutation == "Ctrl", Treatment == "UT") %>% 
+  .$Sample
+
 depreciation_curve_plot <-
   transcripts_depreciation_curve(sqanti_output = sqanti_class, 
-                                 gene_name = Gene)
+                                 gene_name = Gene,
+                                 samples = samples_to_plot)
 
 # Save data ---------------------------------------------------------------
 ggsave(plot = depreciation_curve_plot,
-       filename = paste0(Gene, "_depreciation_curve_plot.png"), 
+       filename = paste0(Gene, "_depreciation_curve_plot_ctrl_UT.png"), 
+       path = here::here("results", Gene), 
+       width = 6, 
+       height = 4, 
+       dpi = 600
+)
+
+ggsave(plot = depreciation_curve_plot,
+       filename = paste0(Gene, "_depreciation_curve_plot_ctrl_UT.svg"), 
        path = here::here("results", Gene), 
        width = 6, 
        height = 4, 

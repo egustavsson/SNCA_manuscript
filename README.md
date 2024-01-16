@@ -1,26 +1,19 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
-# SNCA manuscript
+# OMIM MANE-select transcript expression manuscript
+
+> The aim with the analysis is to answer: Is MANE select/Ensembl canonical the most highly expressed transcript in the disease relevant tissue(s)? How much of the expression is represented by MANE select/Ensembl canonical transcripts? How much of the expression is represented by the CDS associated with MANE select? How does this affect variant interpretation?
 
 ## Background
 
-This repository contains all the scripts used to in the SNCA manuscript post transcript calling.
+This repository contains all the scripts used in the OMIM MANE-select transcript expression manuscript.
 
-### Processing of long-read data
+# Public long-read RNA sequencing data
 
-We have previosly developed two `snakemake` pipelines for automated Analysis of Iso-Seq data which we have used here:
+**The publicly available data used comes from two sources:**
 
-[APTARS (Analysis of PacBio TARgeted Sequencing](https://github.com/sid-sethi/APTARS): This pipeline processes all the raw sequencing data, does the alignment to a reference genome and collapses reads into unique transcripts. It also annotates transcripts with information such as open reading frame (ORF) predictions and characterises transcript by comparing if they are full splice matches to transcripts in annotation.
-
-[PSQAN (Post Sqanti QC Analysis](https://github.com/sid-sethi/PSQAN): This pipeline applies a set of QC and filtering criteria to remove potential genomic contamination and rare PCR artifacts. Using [`SQANTI3`](https://github.com/ConesaLab/SQANTI3) output of ORF prediction, NMD prediction and structural categorisation based on comparison with the reference annotation, we grouped the identified isoforms into the following categories:
-
-1.  **Non-coding novel** – if predicted to be non-coding and not a full-splice match with the reference
-2.  **Non-coding known** – if predicted to be non-coding and a full-splice match with the reference
-3.  **NMD novel** – if predicted to be coding & NMD, and not a full-splice match with the reference
-4.  **NMD known** – if predicted to be coding & NMD, and a full-splice match with the reference
-5.  **Coding novel** – if predicted to be coding & not NMD, and not a full-splice match with the reference
-6.  **Coding known (complete match)** – if predicted to be coding & not NMD, and a full-splice & UTR match with the reference
-7.  **Coding known (alternate 3’/5’ end)** – if predicted to be coding & not NMD, and a full-splice match with the reference but with an alternate 3’ end, 5’ end or both 3’ and 5’ end.
+-   **GTEx** - Oxford Nanopore Technologies platform (cDNA-PCR protocol) from 88 GTEx tissue and cell line samples.
+-   **ENCODE** - PacBio IsoSeq from 9 frontal cortex samples.
 
 ## Code contents
 
