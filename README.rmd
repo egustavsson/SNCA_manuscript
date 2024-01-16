@@ -13,23 +13,9 @@ knitr::opts_chunk$set(
 )
 ```
 
-# OMIM MANE-select transcript expression manuscript
+# SNCA transcript expression manuscript
 
-> The aim with the analysis is to answer: Is MANE select/Ensembl canonical the most highly expressed transcript in the disease relevant tissue(s)?
-How much of the expression is represented by MANE select/Ensembl canonical transcripts?
-How much of the expression is represented by the CDS associated with MANE select?
-How does this affect variant interpretation?
-
-## Background
-This repository contains all the scripts used in the OMIM MANE-select transcript expression manuscript. 
-
-# Public long-read RNA sequencing data
-
-**The publicly available data used comes from two sources:**
-
-- **GTEx** - Oxford Nanopore Technologies platform (cDNA-PCR protocol) from 88 GTEx tissue and cell line samples.
-- **ENCODE** - PacBio IsoSeq from 9 frontal cortex samples.
-
+This repository contains the code used to generate the plots used in the SNCA transcript expression and modulation manuscript.
 
 ## Code contents
 
