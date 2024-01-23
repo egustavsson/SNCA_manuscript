@@ -129,18 +129,15 @@ depreciation_curve_plot <-
                                  samples = samples_to_plot)
 
 # Save data ---------------------------------------------------------------
-ggsave(plot = depreciation_curve_plot,
-       filename = paste0(Gene, "_depreciation_curve_plot_ctrl_UT.png"), 
-       path = here::here("results", Gene), 
-       width = 6, 
-       height = 4, 
-       dpi = 600
-)
+file_extensions <- c("png", "svg")
 
-ggsave(plot = depreciation_curve_plot,
-       filename = paste0(Gene, "_depreciation_curve_plot_ctrl_UT.svg"), 
-       path = here::here("results", Gene), 
-       width = 6, 
-       height = 4, 
-       dpi = 600
-)
+for (ext in file_extensions) {
+  ggsave(
+    plot = depreciation_curve_plot,
+    filename = paste0("01a_depreciation_curve_plot_ctrl_UT.", ext),
+    path = here::here("results", "figures"),
+    width = 6,
+    height = 4,
+    dpi = 600
+  )
+}

@@ -139,9 +139,15 @@ transcript_plot <- plot_by_gene(gene_name = "SNCA",
 
 # Save data -------------------------------------------------------------------------------------------
 
-ggsave(plot = transcript_plot,
-       filename = "probe_design_plot.png",
-       path = here::here("results", "SNCA"),
-       width = 12,
-       height = 6,
-       dpi = 600)
+file_extensions <- c("png", "svg")
+
+for (ext in file_extensions) {
+  ggsave(
+    plot = transcript_plot,
+    filename = paste0("00a_probe_design_plot.", ext),
+    path = here::here("results", "figures"),
+    width = 12,
+    height = 6,
+    dpi = 600
+  )
+}

@@ -13,7 +13,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-# SNCA transcript expression manuscript
+# *SNCA* transcript expression manuscript
 
 This repository contains the code used to generate the plots used in the SNCA transcript expression and modulation manuscript.
 

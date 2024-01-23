@@ -38,7 +38,6 @@ plot_transcripts_per_gene <-
                   starts_with('NFLR.Clontech_5p..')) %>% 
       dplyr::select(!samples_to_exclude)
     
-    samples <- samples %>% dplyr::filter(!Sample %in% samples_to_exclude)
        
     # fill colour to use
     fill_colour <- c("Coding known (complete match)" = "#045a8d",
@@ -223,11 +222,16 @@ transcript_plot <-
                             labelling = c("a", "b", "c"))
 
 # Save data ---------------------------------------------------------------
-ggsave(plot = transcript_plot, 
-       filename = paste0(Gene, "_transcript_plot.png"), 
-       path = here::here("results", Gene), 
-       width = 16, 
-       height = 8, 
-       dpi = 600, 
-       bg = "white"
-)
+file_extensions <- c("png", "svg")
+
+for (ext in file_extensions) {
+  ggsave(
+    plot = transcript_plot,
+    filename = paste0("01b_transcrpt_category_expression_plot_ctrl_UT.", ext),
+    path = here::here("results", "figures"),
+    width = 16,
+    height = 8,
+    dpi = 600, 
+    bg = "white"
+  )
+}
