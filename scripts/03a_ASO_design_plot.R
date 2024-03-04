@@ -1,5 +1,6 @@
 library(tidyverse)
 library(here)
+library(readxl)
 library(ggtranscript)
 library(GenomicRanges)
 library(rtracklayer)
@@ -36,13 +37,18 @@ ASO_design <-
 
 plot_ASO_design <- function(transcripts, gff, ASO, start, end) {
   
+  # fill colour to use
+  fill_colour <- c("Coding known (complete match)" = "#045a8d",
+                   "Coding known (alternate 3/5 end)" = "#74add1",
+                   "Coding novel" = "#4d9221",
+                   "NMD novel" = "#d53e4f",
+                   "Non-coding known" = "#b2abd2",
+                   "Non-coding novel" = "#d8daeb")
+  
   # this is to define xlim so that plots match
   locus_subset <- 
     data.frame(start = start,
                end = end)
-  
-  # prepare ASO object as a data frame
-  ASO_design <- data.frame(ASO_design)
   
   # prepare gff object as a data frame and filter to only include transcripts defined in the transcripts object
   gff <- gff[gff$transcript_id %in% transcripts$isoform, ] %>% data.frame() 
@@ -74,7 +80,8 @@ plot_ASO_design <- function(transcripts, gff, ASO, start, end) {
       y = "Transcript ID",
       x = ""
     ) +
-    xlim(locus_subset$start, locus_subset$end) +
+    #xlim(locus_subset$start, locus_subset$end) +
+    facet_zoom(xlim = c(locus_subset$start, locus_subset$end), zoom.size = 1.4) +
     theme_bw() +
     theme(axis.title = element_text(size = 16, face = "bold"),
           axis.text.y = element_text(size = 12, face = "bold"),
@@ -84,8 +91,7 @@ plot_ASO_design <- function(transcripts, gff, ASO, start, end) {
   
   # plot probes
   # Create a new variable 'row' to specify the row for each rectangle
-  ASO$y <- runif(nrow(data.frame(ASO_design)))
-  
+  ASO$y <- rank(-ASO$ASO) / max(rank(-ASO$ASO))
   
   ASO_plot <-
     ASO %>%
@@ -97,17 +103,19 @@ plot_ASO_design <- function(transcripts, gff, ASO, start, end) {
       y = "ASO",
       x = "Genomic position (hg38)"
     ) +
+    geom_text(aes(label = str_c("ASO ", ASO), x = start - 200, y = y)) +
     theme_bw() +
     theme(axis.title = element_text(size = 16, face = "bold"),
           axis.text.x = element_text(size = 12, face = "bold"),
           axis.text.y = element_blank(),
           axis.ticks.y = element_blank())
-  
+
+    
   final_plot <- plot_grid(transcript_plot,
                           ASO_plot,
                           ncol = 1,
                           align = "hv", 
-                          rel_heights = c(1, 0.5), 
+                          rel_heights = c(1.6, 0.3), 
                           axis = "lr",
                           label_size = 18)
   
@@ -118,37 +126,23 @@ plot_ASO_design <- function(transcripts, gff, ASO, start, end) {
 # Main --------------------------------------------------------------------
 
 # transcripts to include
-transcript_plot <- plot_ASO_design(transcripts = transcripts, 
+ASO_design_plot <- plot_ASO_design(transcripts = transcripts, 
                                    gff = gff, 
                                    ASO = ASO_design,
-                                   start = 89699710, 
-                                   end = 89838977)
+                                   start = min(start(ASO_design)) - 1000, 
+                                   end = max(end(ASO_design)) + 1000)
 
-transcript_plot_zoomed <- plot_ASO_design(transcripts = transcripts, 
-                                          gff = gff, 
-                                          ASO = ASO_design,
-                                          start = min(start(ASO_design)) - 1000, 
-                                          end = max(end(ASO_design)) + 1000)
-
-
-plot_panel <- 
-  plot_grid(transcript_plot,
-            transcript_plot_zoomed, 
-            nrow = 1,
-            align = 'hv',
-            labels = c('A', 'B'))
-  
 # Save data -------------------------------------------------------------------------------------------
 
 file_extensions <- c("png", "svg")
 
 for (ext in file_extensions) {
   ggsave(
-    plot = plot_panel,
+    plot = ASO_design_plot,
     filename = paste0("03a_ASO_design_plot.", ext),
     path = here::here("results", "figures"),
-    width = 18,
-    height = 16,
+    width = 16,
+    height = 18,
     dpi = 600
   )
 }

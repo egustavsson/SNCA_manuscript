@@ -53,15 +53,16 @@ plot_transcript_category_expression <-
       aggregate(count ~ Isoform_class + Mutation + Sample,
                 data = .,
                 FUN = "sum") %>% 
-      group_by(Mutation, Isoform_class)
+      dplyr::mutate(case_ctrl = ifelse(Mutation == "Ctrl", "Control", "Mutant")) %>% 
+      group_by(case_ctrl, Isoform_class)
     
     # Plot data
     Expression_per_category_plot <- 
       Expression_per_category %>%
       ggplot(aes(factor(Mutation,
                         levels = c("Ctrl",
-                                   "A53T",
-                                   "SNCAx3")),
+                                   "SNCAx3",
+                                   "A53T")),
                  y = count)) +
       geom_boxplot(aes(fill = Isoform_class), width = 0.5, outlier.shape = NA) +
       geom_point() +
@@ -88,9 +89,6 @@ plot_transcript_category_expression <-
     return(Expression_per_category_plot)
   }
     
-    
-  
-
 # Main --------------------------------------------------------------------
 
 expression_by_category_plot <- plot_transcript_category_expression(data = Transcripts,

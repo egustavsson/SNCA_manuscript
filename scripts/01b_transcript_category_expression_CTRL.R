@@ -29,8 +29,9 @@ Samples <-
 plot_transcripts_per_gene <-
   function(data, gene, gene_name, samples, genotype, treatment, labelling) {
     
-    # Filter samples to include
-    samples_to_exclude <- samples[samples$Treatment != treatment | samples$Mutation != genotype, ]$Sample
+    # Define sample to include and exclude
+    samples_to_include <- samples[samples$Treatment %in% treatment & samples$Mutation %in% genotype, "Sample"]
+    samples_to_exclude <- samples[samples$Treatment != treatment | samples$Mutation != genotype, "Sample"]
     
     data <- 
       data %>% 
@@ -57,38 +58,32 @@ plot_transcripts_per_gene <-
       dplyr::count(associated_gene, Isoform_class)
     
     # if categories are missing populate df
-    if(length(c("Coding known (complete match)",
-                "Coding known (alternate 3/5 end)",
-                "Coding novel",
-                "NMD novel",
-                "Non-coding known",
-                "Non-coding novel")) != length(Transcripts_per_category$Isoform_class)) {
-      
-      missing <-
-        data.frame(associated_gene = gene_name,
-                   Isoform_class = setdiff(c("Coding known (complete match)",
-                                             "Coding known (alternate 3/5 end)",
-                                             "Coding novel",
-                                             "NMD novel",
-                                             "Non-coding known",
-                                             "Non-coding novel"), 
-                                           Transcripts_per_category$Isoform_class),
-                   n = 0)
-      
-      Transcripts_per_category <- bind_rows(Transcripts_per_category, missing)
-    }
+    # if(length(c("Coding known (complete match)",
+    #             "Coding known (alternate 3/5 end)",
+    #             "Coding novel",
+    #             "NMD novel",
+    #             "Non-coding known",
+    #             "Non-coding novel")) != length(Transcripts_per_category$Isoform_class)) {
+    #   
+    #   missing <-
+    #     data.frame(associated_gene = gene_name,
+    #                Isoform_class = setdiff(c("Coding known (complete match)",
+    #                                          "Coding known (alternate 3/5 end)",
+    #                                          "Coding novel",
+    #                                          "NMD novel",
+    #                                          "Non-coding known",
+    #                                          "Non-coding novel"), 
+    #                                        Transcripts_per_category$Isoform_class),
+    #                n = 0)
+    #   
+    #   Transcripts_per_category <- bind_rows(Transcripts_per_category, missing)
+    # }
     
     
     Transcripts_per_category_plot <-
       Transcripts_per_category %>% 
-      ggplot(aes(x = factor(Isoform_class, 
-                            levels = c("Coding known (complete match)",
-                                       "Coding known (alternate 3/5 end)",
-                                       "Coding novel",
-                                       "NMD novel",
-                                       "Non-coding known",
-                                       "Non-coding novel")), 
-                 y = n, 
+      ggplot(aes(x = Isoform_class,
+                 y = n,
                  fill = Isoform_class)) +
       geom_col(show.legend = F, colour = "Black") +
       scale_fill_manual(values = fill_colour) +
@@ -107,7 +102,7 @@ plot_transcripts_per_gene <-
     ## Plot expression per transcript ##
     Expression_per_transcript <-
       data %>%
-      dplyr::select(isoform, Isoform_class, samples$Sample) %>%
+      dplyr::select(isoform, Isoform_class, samples_to_include) %>%
       pivot_longer(!c(isoform, Isoform_class), names_to = "Sample", values_to = "NFLR") %>%
       group_by(isoform, Isoform_class) %>%
       summarise(NFLR_mean = mean(NFLR), NFLR_sd = sd(NFLR), .groups = "keep") %>%
@@ -135,7 +130,7 @@ plot_transcripts_per_gene <-
       data %>%
       dplyr::select(Isoform_class, 
                     associated_gene, 
-                    samples$Sample) %>%
+                    samples_to_include) %>%
       pivot_longer(!c(Isoform_class, associated_gene), 
                    names_to = "Sample", 
                    values_to = "count") %>% 
@@ -150,37 +145,31 @@ plot_transcripts_per_gene <-
       group_by(Mutation, Isoform_class) %>%
       summarise(mean_count = mean(count), sd_count = sd(count))
     
-    categories_to_check <- c("Coding known (complete match)",
-                             "Coding known (alternate 3/5 end)",
-                             "Coding novel",
-                             "NMD novel",
-                             "Non-coding known",
-                             "Non-coding novel")
+    # categories_to_check <- c("Coding known (complete match)",
+    #                          "Coding known (alternate 3/5 end)",
+    #                          "Coding novel",
+    #                          "NMD novel",
+    #                          "Non-coding known",
+    #                          "Non-coding novel")
     
-    # Loop through each factor and check if it is missing in Expression_per_category
-    for (variable in categories_to_check) {
-      if (!variable %in% Expression_per_category$Isoform_class) {
-        # Create a new row with the missing variable, mean_count = 0, sd_count = 0 for all samples
-        new_row <- data.frame(Mutation = rep(samples, each = 1),
-                              Isoform_class = variable,
-                              mean_count = 0,
-                              sd_count = 0)
-        # Add the new row to Expression_per_category
-        Expression_per_category <- rbind(Expression_per_category, new_row)
-      }
-    }
+    # # Loop through each factor and check if it is missing in Expression_per_category
+    # for (variable in categories_to_check) {
+    #   if (!variable %in% Expression_per_category$Isoform_class) {
+    #     # Create a new row with the missing variable, mean_count = 0, sd_count = 0 for all samples
+    #     new_row <- data.frame(Mutation = rep(samples, each = 1),
+    #                           Isoform_class = variable,
+    #                           mean_count = 0,
+    #                           sd_count = 0)
+    #     # Add the new row to Expression_per_category
+    #     Expression_per_category <- rbind(Expression_per_category, new_row)
+    #   }
+    # }
     
     Expression_per_category_plot <-
       Expression_per_category %>%
-      ggplot(aes(factor(Isoform_class, 
-                        levels = c("Coding known (complete match)",
-                                   "Coding known (alternate 3/5 end)",
-                                   "Coding novel",
-                                   "NMD novel",
-                                   "Non-coding known",
-                                   "Non-coding novel")), 
-            y = mean_count, 
-            fill = Isoform_class)) +
+      ggplot(aes(x = Isoform_class,
+                 y = mean_count, 
+                 fill = Isoform_class)) +
       geom_col(position = "dodge", color = "black") +
       geom_errorbar(aes(ymin = mean_count - sd_count, ymax = mean_count + sd_count),
                     position = position_dodge(0.9), width = 0.2) +
@@ -227,7 +216,7 @@ file_extensions <- c("png", "svg")
 for (ext in file_extensions) {
   ggsave(
     plot = transcript_plot,
-    filename = paste0("01b_transcrpt_category_expression_plot_ctrl_UT.", ext),
+    filename = paste0("01b_transcript_category_expression_plot_ctrl_UT.", ext),
     path = here::here("results", "figures"),
     width = 16,
     height = 8,

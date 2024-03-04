@@ -10,7 +10,6 @@ library(readxl)
 args <-
   list(
     path_to_transcripts = here::here("raw_data", "PB_iPSC_04062021", "SNCA_classification_filtered.txt"),
-    path_to_gff = here::here("raw_data", "PB_iPSC_04062021", "SNCA_corrected.gtf.cds.gff"),
     path_to_samples = here::here("raw_data", "PB_iPSC_04062021", "James_samples.xlsx")
   )
 
@@ -36,7 +35,7 @@ plot_transcript_category_expression <-
                      "Non-coding novel" = "#d8daeb")
     
     # Filter samples to include
-    samples_to_include <- samples[samples$Treatment == treatment & samples$Mutation %in% genotype, ]$Sample
+    samples_to_include <- samples[samples$Treatment %in% treatment & samples$Mutation %in% genotype, ]$Sample
     
     Expression_per_category <-
       data %>%
@@ -49,55 +48,52 @@ plot_transcript_category_expression <-
       dplyr::left_join(., 
                        dplyr::select(samples, 
                                      Sample, 
-                                     Mutation), 
+                                     Mutation, 
+                                     Treatment), 
                        by = c("Sample" = "Sample")) %>% 
-      aggregate(count ~ Isoform_class + Mutation + Sample,
+      aggregate(count ~ Isoform_class + Mutation + Sample + Treatment,
                 data = .,
-                FUN = "sum") %>% 
-      group_by(Mutation, Isoform_class)
-    
+                FUN = "sum") 
     # Plot data
-    Expression_per_category_plot <- 
-      Expression_per_category %>%
-      ggplot(aes(factor(Mutation,
-                        levels = c("Ctrl",
-                                   "A53T",
-                                   "SNCAx3")),
-                 y = count)) +
-      geom_boxplot(aes(fill = Isoform_class), width = 0.5, outlier.shape = NA) +
-      geom_point() +
-      stat_compare_means(label.x.npc = "center") +
-      labs(x = "Transcript category", 
-           y = "Expression per transcript category") +
-      scale_fill_manual(values = fill_colour) +
-      scale_y_continuous(labels = function(x) paste0(x, '%')) +
-      scale_x_discrete(labels = c("Coding known (alternate 3/5 end)" = "Coding known\n(alternate 3/5 end)",
-                                  "Coding known (complete match)" = "Coding known\n(complete match)")) +
-      facet_wrap(vars(Isoform_class)) +
-      theme_bw() +
-      theme(panel.border = element_rect(colour = "black", fill=NA, size=1),
-            legend.position = "top",
-            legend.title = element_blank(),
-            strip.text = element_text(size = 12, face = "bold"),
-            axis.title = element_text(size = 16), 
-            axis.text.x = element_text(angle = 45, 
-                                       hjust=1,
-                                       size = 12),
-            axis.text.y = element_text(face = "bold", size = 12))
+      
+      final_plot <-
+        Expression_per_category %>%
+        ggplot(aes(x = factor(Treatment, levels = c("UT", "ASO")),
+                   y = count)) +
+        geom_boxplot(aes(fill = Isoform_class),
+                     width = 0.5, 
+                     outlier.shape = NA) +
+        geom_point() +
+        stat_compare_means(label.x.npc = "center", label = "p.format", paired = F) +
+        labs(x = "", 
+             y = "Expression per transcript category") +
+        scale_fill_manual(values = fill_colour) +
+        scale_y_continuous(labels = function(x) paste0(x, '%')) +
+        scale_x_discrete(labels = c("Coding known (alternate 3/5 end)" = "Coding known\n(alternate 3/5 end)",
+                                    "Coding known (complete match)" = "Coding known\n(complete match)")) +
+        facet_grid(cols = vars(factor(Mutation, levels = c("Ctrl", "A53T", "SNCAx3"))),
+                   rows = vars(Isoform_class), 
+                   scales = "free") +
+        theme_bw() +
+        theme(panel.border = element_rect(colour = "black", fill=NA, size=1),
+              legend.position = "top",
+              legend.title = element_blank(),
+              strip.text = element_text(size = 12, face = "bold"),
+              axis.title = element_text(size = 16, face = "bold"), 
+              axis.text.x = element_text(angle = 45, 
+                                         hjust=1,
+                                         size = 12),
+              axis.text.y = element_text(face = "bold", size = 12))
     
-    
-    return(Expression_per_category_plot)
+    return(final_plot)
   }
-
-
-
 
 # Main --------------------------------------------------------------------
 
 expression_by_category_plot <- plot_transcript_category_expression(data = Transcripts,
                                                                    samples = Samples, 
                                                                    genotype = c("Ctrl", "A53T", "SNCAx3"), 
-                                                                   treatment = "UT")
+                                                                   treatment = c("UT", "ASO"))
 
 
 # Save data ---------------------------------------------------------------
@@ -106,10 +102,10 @@ file_extensions <- c("png", "svg")
 for (ext in file_extensions) {
   ggsave(
     plot = expression_by_category_plot,
-    filename = paste0("02a_diff_expression_category_ctrl_UT.", ext),
+    filename = paste0("04a_diff_expression_category_ASO.", ext),
     path = here::here("results", "figures"),
-    width = 10,
-    height = 8,
+    width = 8,
+    height =16,
     dpi = 600, 
     bg = "white"
   )
