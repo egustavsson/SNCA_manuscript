@@ -1,8 +1,8 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
-# SNCA transcript expression manuscript
+# *SNCA* transcript diversity in neurons
 
-This repository contains the code used to generate the plots used in the SNCA transcript expression and modulation manuscript.
+This repository contains the code used to generate the plots used in the SNCA transcript expression and ASO modulation manuscript.
 
 ## Code contents
 
@@ -20,14 +20,6 @@ Within this repository you will find:
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
-<td><a href="docs" class="uri">docs</a></td>
-<td>Contains all <code>.Rmd</code>s and their corresponding <code>.html</code>s describing analyses performed for this project.</td>
-</tr>
-<tr class="even">
-<td><a href="logs" class="uri">logs</a></td>
-<td>For any scripts that were run outside of an <code>.Rmd</code> (e.g. scripts from the <a href="scripts" class="uri">scripts</a> directory), a log file was recorded and can be accessed here.</td>
-</tr>
 <tr class="odd">
 <td><a href="raw_data" class="uri">raw_data</a></td>
 <td>Data used for the analysis. Most will not be available due to size.</td>
