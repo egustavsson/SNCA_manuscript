@@ -4,6 +4,7 @@ library(tidyverse)
 library(here)
 library(ggpubr)
 library(readxl)
+library(cowplot)
 
 # Arguments---------------------------------------------------------------
 
@@ -46,67 +47,51 @@ plot_transcript_expression <-
                                      Treatment), 
                        by = c("Sample" = "Sample")) %>% 
       aggregate(data = ., count ~ ORF_length + Treatment + Sample + Mutation, FUN = "sum") %>% 
-      dplyr::mutate(ORF_length = paste0(ORF_length, "aa")) 
-    
-    # split data into list
-    expression_list <- 
-      list(
-        A53T = Expression_per_transcript[Expression_per_transcript$Mutation %in% c("Ctrl", "A53T"), ],
-        SNCAx3 = Expression_per_transcript[Expression_per_transcript$Mutation %in% c("Ctrl", "SNCAx3"), ]
-      )
-    
-    # set fill colours as it causes prolems within lapply/loops
-    fill_colors <- c("Ctrl" = "grey83", "A53T" = "turquoise", "SNCAx3" = "turquoise")  # Adjust colors as needed
+      dplyr::mutate(ORF_length = paste0(ORF_length, "aa")) %>% 
+      dplyr::mutate(Sample_ID = gsub("_UT|_M", "", Sample))
     
     
-    plot_list <- lapply(names(expression_list), function(mut) {
-      
-      x <- expression_list[[mut]]
-      
-      ggplot(x, aes(x = factor(Treatment, levels = c("UT", "ASO")),
-                    y = count,
-                    fill = factor(Mutation, levels = c("Ctrl", mut), labels = c("Ctrl", mut))
+    #fill_colour <- c("Ctrl" = "grey83", "A53T" = "turquoise", "SNCAx3" = "turquoise")  # Adjust colors as needed
+    
+    
+    final_plot <-
+      Expression_per_transcript %>% 
+      ggplot(aes(x = factor(Treatment, levels = c("UT", "ASO")),
+                 y = count
       )) +
-        geom_boxplot(width = 0.5) +
-        geom_point(position = position_dodge(width = 0.5)) +
-        stat_compare_means(label.x.npc = "center", label = "p.format", paired = F) +
-        labs(title = paste("Expression per SNCA ORF in", mut, "x Ctrl", "iPSC mDA neurons"),
-             x = "", 
-             y = "Expression per transcript category") +
-        scale_y_continuous(labels = function(y) paste0(y, '%')) +
-        scale_fill_manual(values = fill_colors[unique(x$Mutation)]) +
-        facet_wrap(
-          vars(ORF_length), 
-          scales = "free_y",
-          nrow = 1) +
-        theme_bw() +
-        theme(plot.title = element_text(size = 16,
-                                        face = "bold",
-                                        hjust = 0.5),
-              panel.border = element_rect(colour = "black", fill=NA, size=1),
-              legend.position = "top",
-              legend.title = element_blank(),
-              strip.text = element_text(size = 12, face = "bold"),
-              axis.title = element_text(size = 14, face = "bold"), 
-              axis.text.x = element_text(angle = 45, 
-                                         hjust=1,
-                                         size = 12),
-              axis.text.y = element_text(face = "bold", size = 12))
-    })
+      geom_boxplot(fill = "#add8e6", width = 0.5) +
+      geom_point(position = position_dodge(width = 0.5)) +
+      geom_line(aes(group = Sample_ID),
+                color = "grey") + # Add connecting lines
+      stat_compare_means(label.x.npc = "center", label = "p.format", paired = F, label.y.npc = 0.95) +
+      labs(x = "", 
+           y = "Expression per transcript category") +
+      scale_y_continuous(labels = function(y) paste0(y, '%')) +
+      facet_grid(cols = vars(factor(Mutation, levels = c("Ctrl", "A53T", "SNCAx3"))),
+                 rows = vars(factor(ORF_length, levels = c("140aa", "128aa", "123aa", "118aa", "115aa", "113aa", "112aa", "107aa"))), 
+                 scales = "free") +
+      theme_bw() +
+      theme(plot.title = element_text(size = 16,
+                                      face = "bold",
+                                      hjust = 0.5),
+            panel.border = element_rect(colour = "black", fill=NA, size=1),
+            legend.position = "none",
+            strip.text = element_text(size = 12, face = "bold"),
+            axis.title = element_text(size = 14, face = "bold"), 
+            axis.text.x = element_text(angle = 45, 
+                                       hjust=1,
+                                       size = 12),
+            axis.text.y = element_text(face = "bold", size = 12))
     
-    return(plot_grid(plot_list[[1]],
-                     plot_list[[2]],
-                     ncol = 1, 
-                     labels = c("A", "B"), 
-                     label_size = 18))
+    return(final_plot)
   }
 
 # Main --------------------------------------------------------------------
 
 expression_by_transcript_plot <- plot_transcript_expression(data = Transcripts,
-                                                                   samples = Samples, 
-                                                                   genotype = c("Ctrl", "A53T", "SNCAx3"), 
-                                                                   treatment = c("UT", "ASO"))
+                                                            samples = Samples, 
+                                                            genotype = c("Ctrl", "A53T", "SNCAx3"), 
+                                                            treatment = c("UT", "ASO"))
 
 
 # Save data ---------------------------------------------------------------
@@ -117,8 +102,8 @@ for (ext in file_extensions) {
     plot = expression_by_transcript_plot,
     filename = paste0("04b_diff_expression_transcript_ASO.", ext),
     path = here::here("results", "figures"),
-    width = 18,
-    height = 10,
+    width = 10,
+    height = 14,
     dpi = 600, 
     bg = "white"
   )

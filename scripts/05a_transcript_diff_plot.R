@@ -40,9 +40,25 @@ ref <- rtracklayer::import(stringr::str_remove(ref_path, "\\.gz"))
 
 # Functions ---------------------------------------------------------------
 
-get_lr_tx_of_interest <- function(lr, pb_ids) {
+get_lr_tx_of_interest <- function(lr, novel_ids, pb_ids) {
   
   lr <- lr[lr$transcript_id %in% pb_ids]
+  # added this so that the names include aa length
+  for (i in 1:length(lr)) {
+    # Get the transcript_id of the current row
+    current_transcript_id <- lr$transcript_id[i]
+    
+    # Find the corresponding new_id from the replacement table
+    new_id <- novel_ids$new_id[novel_ids$isoform == current_transcript_id]
+    
+    # Check if a matching new_id is found
+    if (length(new_id) > 0) {
+      # Replace the transcript_id with the new_id
+      lr$transcript_id[i] <- new_id
+    }
+  }
+  
+  
   lr_exons <- lr[lr$type == "exon"]
   lr_cds <- lr[lr$type == "CDS"]
   
@@ -90,8 +106,8 @@ plot_diff <- function(lr_exons_cds,
   # merge mane and lr data and convert to data.frame() for plotting
   # convert transcript_id to factor to make sure mane is at top
   transcript_order <- c(
-    lr_exons_cds$exons$transcript_id %>% unique(),
-    mane_exons_cds$exons$transcript_id %>% unique()
+    lr_exons_cds$exons$transcript_id %>% unique() %>% sort(),
+    mane_exons_cds$exons$transcript_id %>% unique() %>% sort()
   )
   
   lr_mane_exons_df <- c(lr_exons_cds$exons, mane_exons_cds$exons) %>% 
@@ -184,8 +200,12 @@ plot_diff <- function(lr_exons_cds,
 # Get all unique ORFs
 ORFs <- transcript %>% dplyr::select(isoform, ORF_length) %>% na.omit() %>% dplyr::filter(ORF_length != "140")
 
+# to add aa length into transcripts id i need to generate them to be used in get_lr_tx_of_interest()
+ORF_ids <- ORFs %>% dplyr::mutate(new_id = paste0(ORF_length, "aa", " (", isoform, ")")) %>% dplyr::select(isoform, new_id)
+
 SNCA_lr_exons_cds <- get_lr_tx_of_interest(
-  lr = lr, 
+  lr = lr,
+  novel_ids = ORF_ids,
   pb_ids = ORFs$isoform)
 
 SNCA_mane_exons_cds <- get_mane(ref, mane_id = "ENST00000394991")

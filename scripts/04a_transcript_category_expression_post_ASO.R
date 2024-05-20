@@ -4,6 +4,7 @@ library(tidyverse)
 library(here)
 library(ggpubr)
 library(readxl)
+library(cowplot)
 
 # Arguments---------------------------------------------------------------
 
@@ -53,17 +54,21 @@ plot_transcript_category_expression <-
                        by = c("Sample" = "Sample")) %>% 
       aggregate(count ~ Isoform_class + Mutation + Sample + Treatment,
                 data = .,
-                FUN = "sum") 
+                FUN = "sum") %>% 
+      dplyr::mutate(Sample_ID = gsub("_UT|_M", "", Sample))
+    
     # Plot data
       
       final_plot <-
         Expression_per_category %>%
         ggplot(aes(x = factor(Treatment, levels = c("UT", "ASO")),
-                   y = count)) +
+                 y = count)) +
         geom_boxplot(aes(fill = Isoform_class),
                      width = 0.5, 
                      outlier.shape = NA) +
         geom_point() +
+        geom_line(aes(group = Sample_ID), 
+                  color = "grey") + # Add connecting lines
         stat_compare_means(label.x.npc = "center", label = "p.format", paired = F) +
         labs(x = "", 
              y = "Expression per transcript category") +

@@ -15,7 +15,7 @@ knitr::opts_chunk$set(
 
 # *SNCA* transcript expression manuscript
 
-This repository contains the code used to generate the plots used in the SNCA transcript expression and modulation manuscript.
+This repository contains the code used to generate the plots used in the SNCA transcript expression and ASO modulation manuscript.
 
 ## Code contents
 
@@ -23,8 +23,6 @@ Within this repository you will find:
 
 | Directory | Description |
 | --------- | --------------------------------------------------------------------------- |
-| [docs](docs) | Contains all `.Rmd`s and their corresponding `.html`s describing analyses performed for this project. |
-| [logs](logs) | For any scripts that were run outside of an `.Rmd` (e.g. scripts from the [scripts](scripts) directory), a log file was recorded and can be accessed here. |
 | [raw_data](raw_data)| Data used for the analysis. Most will not be available due to size. |
 | [results](results) | Results from all analyses. |
 | [scripts](scripts) | Contains analysis scripts. Each script contains a one-line description and is also referenced in its corresponding `.Rmd`. |

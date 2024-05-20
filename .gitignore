@@ -4,5 +4,6 @@
 .Ruserdata
 .gitignore
 results/*
+zMISC/*
 *.Rproj
 .Rproj.user
