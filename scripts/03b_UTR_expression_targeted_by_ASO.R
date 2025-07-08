@@ -58,7 +58,7 @@ get_3UTR <- function(gff) {
     if (NROW(sorted_exons) == 1) {
       last_exon <- x[x$type == "exon", ]
     } else {
-      last_exon <- setdiff(sorted_exons[1], sorted_exons[2:length(sorted_exons)])
+      last_exon <- GenomicRanges::setdiff(sorted_exons[1], sorted_exons[2:length(sorted_exons)])
       mcols(last_exon) <- mcols(sorted_exons[1])
     }
     
@@ -79,7 +79,7 @@ get_3UTR <- function(gff) {
     utr_list[[i]]$UTR <- unique_ranges$UTR[overlap_idx]
   }
   
-  UTR_gff <- bind_ranges(utr_list)
+  UTR_gff <- plyranges::bind_ranges(utr_list)
   
   return(UTR_gff)
 }
